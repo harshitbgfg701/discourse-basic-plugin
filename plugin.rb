@@ -3,3 +3,5 @@
 # version: 0.0.1
 # authors: Awesome Plugin Developer
 # url: #
+
+enabled_site_setting :awesomeness_enabled
