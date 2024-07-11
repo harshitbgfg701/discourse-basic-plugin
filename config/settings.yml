@@ -1,7 +1,4 @@
 plugins:
-  awesomeness_enabled:
+  bgfg_topic_custom_field_enabled:
     default: true
-    client: true
-  awesomeness_max_volume:
-    default: 10
     client: true
