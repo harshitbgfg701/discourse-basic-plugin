@@ -18,6 +18,7 @@
 {{/if}}
 
 {{#if isString}}
+  <p>Placeholder: {{i18n 'topic_custom_field.placeholder' field=fieldName}}</p>
   {{input
     type="text"
     value=(readonly fieldValue)

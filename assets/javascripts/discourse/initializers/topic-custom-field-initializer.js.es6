@@ -15,6 +15,9 @@ export default {
             return;
         }
 
+        console.log('Field Name', fieldName);
+        console.log('Field Type', fieldType);
+
         withPluginApi('0.8', api => {
 
             api.registerConnectorClass('composer-fields', 'composer-topic-custom-field-container', {
