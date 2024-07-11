@@ -1,3 +1,5 @@
 en:
   site_settings:
     bgfg_topic_custom_field_enabled: "Is BGFG Topic Custom Field is enabled?"
+    topic_custom_field_name: Name of your topic custom field.
+    topic_custom_field_type: Type of your topic custom field.

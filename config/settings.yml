@@ -2,3 +2,9 @@ plugins:
   bgfg_topic_custom_field_enabled:
     default: true
     client: true
+  topic_custom_field_name:
+    default: 'read more'
+    client: true
+  topic_custom_field_type:
+    default: 'string'
+    client: true
