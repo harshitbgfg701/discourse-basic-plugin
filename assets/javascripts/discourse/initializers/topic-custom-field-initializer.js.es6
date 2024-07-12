@@ -32,7 +32,8 @@ export default {
 
                     let props = {
                         fieldName: fieldName,
-                        fieldValue: model.get(fieldName)
+                        fieldValue: model.get(fieldName),
+                        placeholder: I18n.t('topic_custom_field.placeholder', { field: fieldName })
                     }
                     component.setProperties(Object.assign(props, fieldInputTypes(fieldType)));
                 },
