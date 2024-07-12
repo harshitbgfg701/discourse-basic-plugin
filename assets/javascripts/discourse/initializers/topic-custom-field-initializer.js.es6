@@ -2,7 +2,6 @@ import { withPluginApi } from 'discourse/lib/plugin-api';
 import discourseComputed from "discourse-common/utils/decorators";
 import { alias } from '@ember/object/computed';
 import { isDefined, fieldInputTypes } from '../lib/topic-custom-field';
-import I18n from 'I18n';
 
 export default {
     name: 'topic-custom-field-intializer',
