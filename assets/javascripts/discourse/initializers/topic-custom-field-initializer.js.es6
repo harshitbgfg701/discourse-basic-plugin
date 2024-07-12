@@ -40,6 +40,7 @@ export default {
 
                 actions: {
                     onChangeField(fieldValue) {
+                        console.log('composer-fields', fieldValue);
                         this.set(`model.${fieldName}`, fieldValue);
                     }
                 }
@@ -58,6 +59,7 @@ export default {
 
                 actions: {
                     onChangeField(fieldValue) {
+                        console.log('edit-topic', fieldValue);
                         this.set(`buffered.${fieldName}`, fieldValue);
                     }
                 }
