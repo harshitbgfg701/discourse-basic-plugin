@@ -8,8 +8,10 @@ export default {
     initialize(container) {
 
         const siteSettings = container.lookup('site-settings:main');
-        const fieldName = siteSettings.topic_custom_field_name;
+        let fieldName = siteSettings.topic_custom_field_name;
         const fieldType = siteSettings.topic_custom_field_type;
+
+        fieldName = fieldName.trim().replace(/\s+/g, '_').toLowerCase();
 
         if (!siteSettings.bgfg_topic_custom_field_enabled) {
             return;
