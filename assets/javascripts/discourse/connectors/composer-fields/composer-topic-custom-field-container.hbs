@@ -24,7 +24,7 @@
     value=(readonly fieldValue)
     class="topic-custom-field-input large"
     input=(action "onChangeField" value="target.value")
-    placeholder=placeholder
+    placeholder=(i18n 'topic_custom_field.placeholder' field=fieldName)
   }}
 {{/if}}
 

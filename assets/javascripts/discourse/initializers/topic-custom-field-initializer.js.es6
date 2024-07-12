@@ -9,6 +9,7 @@ export default {
 
         const siteSettings = container.lookup('site-settings:main');
         let fieldName = siteSettings.topic_custom_field_name;
+        const labelFieldName = fieldName;
         const fieldType = siteSettings.topic_custom_field_type;
 
         fieldName = fieldName.trim().replace(/\s+/g, '_').toLowerCase();
@@ -33,9 +34,8 @@ export default {
                     }
 
                     let props = {
-                        fieldName: fieldName,
-                        fieldValue: model.get(fieldName),
-                        placeholder: I18n.t('topic_custom_field.placeholder', { field: fieldName })
+                        fieldName: labelFieldName,
+                        fieldValue: model.get(fieldName)
                     }
                     component.setProperties(Object.assign(props, fieldInputTypes(fieldType)));
                 },
