@@ -8,3 +8,9 @@ plugins:
   topic_custom_field_type:
     default: 'string'
     client: true
+    type: enum
+    choices:
+      - string
+      - integer
+      - boolean
+      - json

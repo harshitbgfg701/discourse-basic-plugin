@@ -45,6 +45,28 @@ export default {
                 }
             });
 
+            api.registerConnectorClass('edit-topic', 'edit-topic-custom-field-container', {
+                setupComponent(attrs, component) {
+                    const model = attrs.model;
+
+                    let props = {
+                        fieldName: fieldName,
+                        fieldValue: model.get(fieldName)
+                    }
+                    component.setProperties(Object.assign(props, fieldInputTypes(fieldType)));
+                },
+
+                actions: {
+                    onChangeField(fieldValue) {
+                        this.set(`buffered.${fieldName}`, fieldValue);
+                    }
+                }
+            });
+
+            api.serializeOnCreate(fieldName);
+            api.serializeToDraft(fieldName);
+            api.serializeToTopic(fieldName, `topic.${fieldName}`);
+
 
         });
     }
