@@ -17,15 +17,10 @@ export default {
             return;
         }
 
-        console.log('Field Name', fieldName);
-        console.log('Field Type', fieldType);
-
-        withPluginApi('0.8', api => {
+        withPluginApi('0.8.26', api => {
             api.registerConnectorClass('composer-fields', 'composer-topic-custom-field-container', {
                 setupComponent(attrs, component) {
                     const model = attrs.model;
-
-                    console.log('composer-fields - model', model);
 
                     // If the first post is being edited we need to pass our value from
                     // the topic model to the composer model.
@@ -37,48 +32,13 @@ export default {
                         fieldName: labelFieldName,
                         fieldValue: model.get(fieldName)
                     }
-                    console.log('composer-fields - set up component', props);
                     component.setProperties(Object.assign(props, fieldInputTypes(fieldType)));
                 },
 
                 actions: {
                     onChangeField(event) {
-                        const fieldValue = event.target.value;
-                        console.log(`model.${fieldName}`, fieldValue);
-                        this.set(`model.${fieldName}`, fieldValue);
-                    },
-                    onSaveTopic() {
                         const model = this.get('model');
-                        const fieldValue = model.get(fieldName); // Get the current value
-                        console.log('composer-fields - Saving custom description:', fieldValue);
-                        model.set(fieldName, fieldValue);
-                    }
-                }
-            });
-
-            api.registerConnectorClass('edit-topic', 'edit-topic-custom-field-container', {
-                setupComponent(attrs, component) {
-                    const model = attrs.model;
-                    
-                    console.log('edit-topic - model', model);
-
-                    let props = {
-                        fieldName: fieldName,
-                        fieldValue: model.get(fieldName)
-                    }
-                    console.log('edit-topic - set up component', props);
-                    component.setProperties(Object.assign(props, fieldInputTypes(fieldType)));
-                },
-
-                actions: {
-                    onChangeField(fieldValue) {
-                        console.log('edit-topic - onChangeField', fieldValue);
-                        this.set(`buffered.${fieldName}`, fieldValue);
-                    },
-                    onSaveTopic() {
-                        const model = this.get('buffered');
-                        const fieldValue = model.get(fieldName); // Get the current value of custom_description
-                        console.log('edit-topic - Saving custom description:', fieldValue);
+                        const fieldValue = event.target.value;
                         model.set(fieldName, fieldValue);
                     }
                 }
@@ -112,17 +72,16 @@ export default {
                 }
             });
 
+            
+            // api.modifyClass('component:topic-list-item', {
+            //     customFieldName: fieldName,
+            //     customFieldValue: alias(`topic.${fieldName}`),
 
-            api.modifyClass('component:topic-list-item', {
-                customFieldName: fieldName,
-                customFieldValue: alias(`topic.${fieldName}`),
-
-                showCustomField: Ember.computed('customFieldValue', function() {
-                    const value = this.get('customFieldValue');
-                    return isDefined(value);
-                })
-            });
-
+            //     showCustomField: Ember.computed('customFieldValue', function() {
+            //         const value = this.get('customFieldValue');
+            //         return isDefined(value);
+            //     })
+            // });
         });
     }
 };

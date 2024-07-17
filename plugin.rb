@@ -26,45 +26,30 @@ after_initialize do
   end
 
   # Serialize to topic
-#   add_to_serializer(:topic_view, field_name.to_sym, respect_plugin_enabled: true) do
-#     Rails.logger.info("#{field_name.to_sym}");
-#     object.topic.field_name
-#   end
+  add_to_serializer(:topic_view, field_name.to_sym, respect_plugin_enabled: true) do
+    Rails.logger.info("#{field_name.to_sym}");
+    object.topic.send(field_name.to_sym)
+  end
 
   # Preload the Fields
   add_preloaded_topic_list_custom_field(field_name)
 
   # Update on topic creation
   DiscourseEvent.on(:topic_created) do |topic, opts, user|
-    # topic.send("#{field_name}=".to_sym, opts[field_name.to_sym])
-    # topic.save!
-    # topic.custom_fields[field_name] = opts[field_name.to_sym]
-    # topic.save!
-
-    Rails.logger.info("topic: #{topic.inspect}");
-    Rails.logger.info("opts: #{opts.inspect}");
-    Rails.logger.info("does field name present: #{topic.custom_fields[field_name]}");
-    Rails.logger.info("custom_description: #{opts[field_name.to_sym]}");
-
-    if topic.custom_fields[field_name].present?
+    if opts[field_name.to_sym].present?
         topic.custom_fields[field_name] = opts[field_name.to_sym]
         topic.save_custom_fields(true)
-        Rails.logger.info("Saved custom_description: #{opts[field_name.to_sym]}")
+        Rails.logger.info("Saved #{field_name} with value: #{opts[field_name.to_sym]}")
     else
-        Rails.logger.warn("custom_description is nil or empty")
+        Rails.logger.warn("#{field_name} is nil or empty: #{opts[field_name.to_sym]}")
     end
   end
 
   # Update on topic edit
   PostRevisor.track_topic_field(field_name.to_sym) do |tc, value|
-    # tc.record_change(field_name, tc.topic.custom_fields(field_name), value)
-    # tc.topic.send("#{field_name}=".to_sym, value.present? ? value : nil)
-    # tc.topic.custom_fields[field_name] = value.present? ? value : nil
-
     tc.record_change("#{field_name}=".to_sym, tc.topic.custom_fields[field_name], value)
     tc.topic.custom_fields[field_name] = value
   end
-
 
   # Serialize to the topic list
   add_to_serializer(:topic_list_item, field_name.to_sym) do
