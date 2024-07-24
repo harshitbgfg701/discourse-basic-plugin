@@ -9,3 +9,19 @@
 .input-small {
     width: 25%;
 }
+
+
+.custom-field {
+    margin-top: 1em;
+
+    label {
+        display: block;
+        font-weight: bold;
+    }
+
+    input {
+        width: 100%;
+        padding: 0.5em;
+        margin-top: 0.5em;
+    }
+}

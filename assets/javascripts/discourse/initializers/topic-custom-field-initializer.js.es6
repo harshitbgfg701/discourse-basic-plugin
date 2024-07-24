@@ -53,6 +53,8 @@ export default {
                 setupComponent(attrs, component) {
                 const model = attrs.model;
                 const controller = container.lookup('controller:topic');
+
+                console.log('controller from topic title', controller);
                 
                 component.setProperties({
                     fieldName: fieldName,
@@ -72,7 +74,6 @@ export default {
                 }
             });
 
-            
             // api.modifyClass('component:topic-list-item', {
             //     customFieldName: fieldName,
             //     customFieldValue: alias(`topic.${fieldName}`),

@@ -19,22 +19,8 @@
   </div>
 {{/if}}
 
-{{!-- {{#if isString}}
-  <div class="controls">
-    <span>Label</span>
-    <TextField
-      @type="text"
-      @value={{readonly fieldValue}}
-      class="topic-custom-field-input input-large"
-      @onChange={{action "onChangeField" value="target.value"}}
-      @placeholder={{i18n "topic_custom_field.placeholder" field=fieldName}}
-    />
-  </div>
-{{/if}} --}}
-
 {{#if isString}}
 <div class="controls">
-    <span>Label</span>
     <input type="text" value={{readonly fieldValue}} class="topic-custom-field-input input-large"
         oninput={{action "onChangeField" }} placeholder={{i18n "topic_custom_field.placeholder" field=fieldName}} />
 </div>
