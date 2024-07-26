@@ -3,7 +3,7 @@ plugins:
     default: true
     client: true
   topic_custom_field_name:
-    default: 'custom_description'
+    default: 'read_full_story'
     client: true
   topic_custom_field_type:
     default: 'string'
