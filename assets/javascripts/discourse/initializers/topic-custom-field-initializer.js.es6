@@ -51,30 +51,28 @@ export default {
             api.serializeToTopic(fieldName, `topic.${fieldName}`);
 
 
-            api.registerConnectorClass('topic-title', 'topic-title-custom-field-container', {
-                setupComponent(attrs, component) {
-                const model = attrs.model;
-                const controller = container.lookup('controller:topic');
+            // api.registerConnectorClass('topic-title', 'topic-title-custom-field-container', {
+            //     setupComponent(attrs, component) {
+            //     const model = attrs.model;
+            //     const controller = container.lookup('controller:topic');
 
-                console.log('controller from topic title', controller);
-                
-                component.setProperties({
-                    fieldName: fieldName,
-                    fieldValue: model.get(fieldName),
-                    showField: !controller.get('editingTopic') && isDefined(model.get(fieldName))
-                });
+            //     component.setProperties({
+            //         fieldName: fieldName,
+            //         fieldValue: model.get(fieldName),
+            //         showField: !controller.get('editingTopic') && isDefined(model.get(fieldName))
+            //     });
 
-                controller.addObserver('editingTopic', () => {
-                    if (this._state === 'destroying') return;
-                    component.set('showField', !controller.get('editingTopic') && isDefined(model.get(fieldName)));
-                });
+            //     controller.addObserver('editingTopic', () => {
+            //         if (this._state === 'destroying') return;
+            //         component.set('showField', !controller.get('editingTopic') && isDefined(model.get(fieldName)));
+            //     });
                 
-                model.addObserver(fieldName, () => {
-                    if (this._state === 'destroying') return;
-                    component.set('fieldValue', model.get(fieldName));
-                });
-                }
-            });
+            //     model.addObserver(fieldName, () => {
+            //         if (this._state === 'destroying') return;
+            //         component.set('fieldValue', model.get(fieldName));
+            //     });
+            //     }
+            // });
 
             // api.modifyClass('component:topic-list-item', {
             //     customFieldName: fieldName,
