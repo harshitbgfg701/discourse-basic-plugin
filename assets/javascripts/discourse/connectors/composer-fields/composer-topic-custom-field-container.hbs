@@ -23,7 +23,14 @@
 <div class="controls">
     <input type="text" value={{readonly fieldValue}} class="topic-custom-field-input input-large"
         oninput={{action "onChangeField" }} placeholder={{i18n "topic_custom_field.placeholder" field=fieldName}} />
+
+    <input type="file" id="fileUpload" name="fileUpload" accept="image/png, image/jpeg" />
+    <button id="uploadButton" {{action "uploadAndAttachImage" }} class="btn btn-primary">Upload Image</button>
 </div>
+{{/if}}
+
+{{#if topic_file_upload}}
+<img src="{{topic_file_upload}}" alt="Uploaded Image" class="uploaded-image" />
 {{/if}}
 
 {{#if isJson}}
