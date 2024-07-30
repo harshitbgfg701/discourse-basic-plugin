@@ -25,7 +25,7 @@ async function uploadImage(file, callback) {
     fetch(`/uploads.json`, {
         method: 'POST',
         headers: {
-            'Api-Key': 'ab179ed58835779911322cd150dbb81f0c382aff0eba293232c5912a6206d1af',
+            'Api-Key': '4b743a435e37463ab4e42bacf2f4ae561f56a4a149d0a9715ecdaf6d1c4718d6',
             'Api-Username': 'system',
             'Accept': 'application/json'
         },
