@@ -100,4 +100,48 @@ after_initialize do
   add_to_serializer(:topic_list_item, file_upload_field_name.to_sym) do
     object.send(file_upload_field_name)
   end
+
+  # Customizing User Model
+  custom_thumbnail_style_dropdown = 'custom_thumbnail_style_dropdown'
+  User.register_custom_field_type(custom_thumbnail_style_dropdown, :string)
+
+#   # Getter method
+#   add_to_class(:user, custom_thumbnail_style_dropdown.to_sym) do
+#     custom_fields[custom_thumbnail_style_dropdown]
+#   end
+
+#   # Setter method
+#   add_to_class(:user, "#{custom_thumbnail_style_dropdown}=") do |value|
+#     Rails.logger.info("Setting custom field #{custom_thumbnail_style_dropdown} to #{value}")
+#     user.custom_fields[custom_thumbnail_style_dropdown] = value
+#     user.save_custom_fields
+#   end
+
+  # Serialize to user
+  add_to_serializer(:user, custom_thumbnail_style_dropdown.to_sym, false) do
+    object.send(custom_thumbnail_style_dropdown)
+  end
+
+#   add_to_serializer(:user_card, custom_thumbnail_style_dropdown.to_sym, false) do
+#     object.custom_fields[custom_thumbnail_style_dropdown]
+#   end
+
+  module ::CustomField
+    class Engine < ::Rails::Engine
+      engine_name "custom_field"
+      isolate_namespace CustomField
+    end
+  end
+
+  require_dependency 'application_controller'
+  require_relative 'app/controllers/custom_field/custom_fields_controller'
+
+  CustomField::Engine.routes.draw do
+    post '/update_custom_field/:id' => 'custom_fields#update'
+  end
+
+  Discourse::Application.routes.append do
+    mount ::CustomField::Engine, at: '/custom-field'
+  end
+
 end

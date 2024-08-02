@@ -1,0 +1,7 @@
+<div class="custom-dropdown">
+    <select id="dropdown" onchange={{action "saveSelection" value="target.value" }}>
+        <option value="">Select...</option>
+        <option value="grid" selected={{eq customField "grid" }}>Grid</option>
+        <option value="list" selected={{eq customField "list" }}>List</option>
+    </select>
+</div>

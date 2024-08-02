@@ -42,6 +42,7 @@ async function uploadImage(file, callback) {
                 }
             } catch (error) {
                 console.error('Error parsing JSON:', error);
+                console.log('Response text:', text);
             }
         })
         .catch(error => {
@@ -111,7 +112,7 @@ export default {
             api.serializeToDraft(fieldName);
             api.serializeToTopic(fieldName, `topic.${fieldName}`);
 
-            api.serializeOnCreate('topic_file_upload');
+            api.serializeOnCreate('topic_file_upload'); // Ensure the field is serialized
             api.serializeToTopic('topic_file_upload', `topic.topic_file_upload`);
 
             api.modifyClass('component:composer-editor', {
@@ -133,7 +134,6 @@ export default {
                     });
                 }
             });
-
 
             // api.registerConnectorClass('topic-title', 'topic-title-custom-field-container', {
             //     setupComponent(attrs, component) {
