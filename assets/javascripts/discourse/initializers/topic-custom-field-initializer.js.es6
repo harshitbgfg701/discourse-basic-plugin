@@ -42,7 +42,6 @@ async function uploadImage(file, callback) {
                 }
             } catch (error) {
                 console.error('Error parsing JSON:', error);
-                console.log('Response text:', text);
             }
         })
         .catch(error => {
@@ -116,7 +115,7 @@ export default {
             api.serializeToTopic('topic_file_upload', `topic.topic_file_upload`);
 
             api.modifyClass('component:composer-editor', {
-
+                pluginId: "discourse-custom-topic-field",
                 didInsertElement() {
                     this._super(...arguments);
 

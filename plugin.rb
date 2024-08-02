@@ -105,26 +105,10 @@ after_initialize do
   custom_thumbnail_style_dropdown = 'custom_thumbnail_style_dropdown'
   User.register_custom_field_type(custom_thumbnail_style_dropdown, :string)
 
-#   # Getter method
-#   add_to_class(:user, custom_thumbnail_style_dropdown.to_sym) do
-#     custom_fields[custom_thumbnail_style_dropdown]
-#   end
-
-#   # Setter method
-#   add_to_class(:user, "#{custom_thumbnail_style_dropdown}=") do |value|
-#     Rails.logger.info("Setting custom field #{custom_thumbnail_style_dropdown} to #{value}")
-#     user.custom_fields[custom_thumbnail_style_dropdown] = value
-#     user.save_custom_fields
-#   end
-
   # Serialize to user
-  add_to_serializer(:user, custom_thumbnail_style_dropdown.to_sym, false) do
-    object.send(custom_thumbnail_style_dropdown)
+  add_to_serializer(:current_user, custom_thumbnail_style_dropdown.to_sym) do
+    object.custom_fields[custom_thumbnail_style_dropdown]
   end
-
-#   add_to_serializer(:user_card, custom_thumbnail_style_dropdown.to_sym, false) do
-#     object.custom_fields[custom_thumbnail_style_dropdown]
-#   end
 
   module ::CustomField
     class Engine < ::Rails::Engine
