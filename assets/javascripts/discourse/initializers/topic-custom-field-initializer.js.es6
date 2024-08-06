@@ -1,52 +1,35 @@
 import { withPluginApi } from 'discourse/lib/plugin-api';
-import { alias } from '@ember/object/computed';
 import { isDefined, fieldInputTypes } from '../lib/topic-custom-field';
-import Ember from 'ember';
 
-async function getFileChecksum(file) {
-    const arrayBuffer = await file.arrayBuffer();
-    const hashBuffer = await crypto.subtle.digest('SHA-1', arrayBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    return hashHex;
-}
-
-async function uploadImage(file, callback) {
+async function uploadImage(file) {
     const formData = new FormData();
-    const checksum = await getFileChecksum(file);
+    try {
+        formData.append('upload_type', 'composer');
+        formData.append('file', file);
 
-    formData.append('upload_type', 'composer');
-    formData.append('pasted', 'undefined'); // If this field can be omitted or set to 'false', adjust as necessary
-    formData.append('name', file.name);
-    formData.append('type', file.type);
-    formData.append('sha1_checksum', checksum);
-    formData.append('file', file);
-
-    fetch(`/uploads.json`, {
-        method: 'POST',
-        headers: {
-            'Api-Key': '4b743a435e37463ab4e42bacf2f4ae561f56a4a149d0a9715ecdaf6d1c4718d6',
-            'Api-Username': 'system',
-            'Accept': 'application/json'
-        },
-        body: formData,
-    })
-        .then(response => response.text())
-        .then(text => {
-            try {
-                const data = JSON.parse(text);
-                if (data && data.url) {
-                    callback(data.url);
-                } else {
-                    console.error('Image upload failed:', data);
-                }
-            } catch (error) {
-                console.error('Error parsing JSON:', error);
-            }
-        })
-        .catch(error => {
-            console.error('Error uploading image:', error);
+        const response = await fetch('/uploads.json', {
+            method: 'POST',
+            headers: {
+                'Api-Key': '4b743a435e37463ab4e42bacf2f4ae561f56a4a149d0a9715ecdaf6d1c4718d6',
+                'Api-Username': 'system',
+                'Accept': 'application/json'
+            },
+            body: formData
         });
+
+        if (!response.ok) {
+            throw new Error(`Upload failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data && data.url) {
+            return data.url;
+        } else {
+            throw new Error('Image upload failed');
+        }
+    } catch (error) {
+        throw error;
+    }
 }
 
 export default {
@@ -89,19 +72,23 @@ export default {
                 },
 
                 actions: {
-                    onChangeField(event) {
-                        const model = this.get('model');
-                        const fieldValue = event.target.value;
-                        model.set(fieldName, fieldValue);
-                    },
-                    uploadAndAttachImage(event) {
-                        const fileInput = event.target.closest('.controls').querySelector('#fileUpload');
+                    async onChangeFileUpload() {
+                        $(".save-or-cancel .create").prop('disabled', true);
+                        const fileInput = document.getElementById('fileUpload');
                         const file = fileInput.files[0];
+
                         if (file) {
-                            uploadImage(file, (url) => {
-                                this.get('model').set('composerText', `${this.get('model').get('composerText')} ![image](${url}) `);
-                                this.get('model').set('topic_file_upload', url);
-                            });
+                            try {
+                                const uploadedFileURL = await uploadImage(file);
+
+                                if (uploadedFileURL) {
+                                    this.get('model').set('topic_file_upload', uploadedFileURL);
+                                }
+                            } catch (error) {
+                                console.log('error', error);
+                            } finally {
+                                $(".save-or-cancel .create").prop('disabled', false);
+                            }
                         }
                     }
                 }
@@ -111,61 +98,28 @@ export default {
             api.serializeToDraft(fieldName);
             api.serializeToTopic(fieldName, `topic.${fieldName}`);
 
-            api.serializeOnCreate('topic_file_upload'); // Ensure the field is serialized
+            api.serializeOnCreate('topic_file_upload');
+            api.serializeToDraft('topic_file_upload');
             api.serializeToTopic('topic_file_upload', `topic.topic_file_upload`);
 
-            api.modifyClass('component:composer-editor', {
+            api.modifyClass('service:composer', {
                 pluginId: "discourse-custom-topic-field",
-                didInsertElement() {
-                    this._super(...arguments);
 
-                    const toolbar = this.toolbar;
-                    if (!toolbar) {
-                        return;
+                async save() {
+                    const model = this.get('model');
+
+                    if (model.action === 'createTopic' || model.action === 'edit') {
+                        const fieldValue = document.getElementById('topic-custom-field-input').value;
+
+                        if (fieldValue) {
+                            model.set(fieldName, fieldValue);
+                        }
+                        this._super(...arguments);
+                    } else {
+                        this._super(...arguments);
                     }
-
-                    toolbar.addButton({
-                        id: 'upload-image',
-                        icon: 'upload',
-                        action: 'uploadAndAttachImage',
-                        title: 'Upload Image',
-                        label: 'Upload Image',
-                    });
                 }
             });
-
-            // api.registerConnectorClass('topic-title', 'topic-title-custom-field-container', {
-            //     setupComponent(attrs, component) {
-            //     const model = attrs.model;
-            //     const controller = container.lookup('controller:topic');
-
-            //     component.setProperties({
-            //         fieldName: fieldName,
-            //         fieldValue: model.get(fieldName),
-            //         showField: !controller.get('editingTopic') && isDefined(model.get(fieldName))
-            //     });
-
-            //     controller.addObserver('editingTopic', () => {
-            //         if (this._state === 'destroying') return;
-            //         component.set('showField', !controller.get('editingTopic') && isDefined(model.get(fieldName)));
-            //     });
-
-            //     model.addObserver(fieldName, () => {
-            //         if (this._state === 'destroying') return;
-            //         component.set('fieldValue', model.get(fieldName));
-            //     });
-            //     }
-            // });
-
-            // api.modifyClass('component:topic-list-item', {
-            //     customFieldName: fieldName,
-            //     customFieldValue: alias(`topic.${fieldName}`),
-
-            //     showCustomField: Ember.computed('customFieldValue', function() {
-            //         const value = this.get('customFieldValue');
-            //         return isDefined(value);
-            //     })
-            // });
         });
     }
 };

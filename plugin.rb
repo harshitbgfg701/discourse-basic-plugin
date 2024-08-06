@@ -72,7 +72,7 @@ after_initialize do
 
   # Serialize to topic
   add_to_serializer(:topic_view, file_upload_field_name.to_sym, respect_plugin_enabled: true) do
-    Rails.logger.info("#{file_upload_field_name.to_sym}");
+    Rails.logger.info("Topic view file upload: #{file_upload_field_name.to_sym}");
     object.topic.send(file_upload_field_name.to_sym)
   end
 

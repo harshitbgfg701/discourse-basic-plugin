@@ -21,11 +21,10 @@
 
 {{#if isString}}
 <div class="controls">
-    <input type="text" value={{readonly fieldValue}} class="topic-custom-field-input input-large"
-        oninput={{action "onChangeField" }} placeholder={{i18n "topic_custom_field.placeholder" field=fieldName}} />
+    <input type="text" value={{readonly fieldValue}} id="topic-custom-field-input" class="topic-custom-field-input input-large"
+         placeholder={{i18n "topic_custom_field.placeholder" field=fieldName}} />
 
-    <input type="file" id="fileUpload" name="fileUpload" accept="image/png, image/jpeg" />
-    <button id="uploadButton" {{action "uploadAndAttachImage" }} class="btn btn-primary">Upload Image</button>
+    <input type="file" onchange={{action send 'onChangeFileUpload' }} id="fileUpload" name="fileUpload" accept="image/*" />
 </div>
 {{/if}}
 
