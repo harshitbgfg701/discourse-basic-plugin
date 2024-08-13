@@ -22,13 +22,42 @@ async function uploadImage(file) {
         }
 
         const data = await response.json();
-        if (data && data.url) {
-            return data.url;
+        if (data) {
+            return data;
         } else {
             throw new Error('Image upload failed');
         }
     } catch (error) {
         throw error;
+    }
+}
+
+
+async function updateTopicImageUploadId(topicId, uploadId, image_url) {
+
+    console.log(topicId, uploadId);
+    try {
+        const response = await fetch('/associate-image-to-topic/update', {
+            method: 'PUT',
+            headers: {
+                'Api-Key': '4b743a435e37463ab4e42bacf2f4ae561f56a4a149d0a9715ecdaf6d1c4718d6',
+                'Api-Username': 'system',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                topic_id: topicId,
+                upload_id: uploadId
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to update topic with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Topic updated successfully:', data);
+    } catch (error) {
+        console.error('Error updating topic image_upload_id:', error);
     }
 }
 
@@ -79,10 +108,14 @@ export default {
 
                         if (file) {
                             try {
-                                const uploadedFileURL = await uploadImage(file);
+                                const uploadedFileData = await uploadImage(file);
 
-                                if (uploadedFileURL) {
-                                    this.get('model').set('topic_file_upload', uploadedFileURL);
+                                if (uploadedFileData && uploadedFileData.url) {
+                                    this.get('model').set('topic_file_upload', uploadedFileData.url);
+                                    this.get('model').set('topic_file_upload_id', uploadedFileData.id);
+
+                                    // Update the image_upload_id in the topic
+                                    await updateTopicImageUploadId(this.get('model').topic.id, uploadedFileData.id);
                                 }
                             } catch (error) {
                                 console.log('error', error);
@@ -101,6 +134,10 @@ export default {
             api.serializeOnCreate('topic_file_upload');
             api.serializeToDraft('topic_file_upload');
             api.serializeToTopic('topic_file_upload', `topic.topic_file_upload`);
+
+            api.serializeOnCreate('topic_file_upload_id');
+            api.serializeToDraft('topic_file_upload_id');
+            api.serializeToTopic('topic_file_upload_id', `topic.topic_file_upload_id`);
 
             api.modifyClass('service:composer', {
                 pluginId: "discourse-custom-topic-field",

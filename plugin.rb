@@ -59,15 +59,23 @@ after_initialize do
 
   # Add file upload custom field
   file_upload_field_name = 'topic_file_upload'
+  file_upload_field_id = 'topic_file_upload_id'
   Topic.register_custom_field_type(file_upload_field_name, :string)
+  Topic.register_custom_field_type(file_upload_field_id, :number)
     # Getter method
   add_to_class(:topic, file_upload_field_name.to_sym) do
     custom_fields[file_upload_field_name]
+  end
+  add_to_class(:topic, file_upload_field_id.to_sym) do
+    custom_fields[file_upload_field_id]
   end
 
   # Setter method
   add_to_class(:topic, "#{file_upload_field_name}=") do |value|
     custom_fields[file_upload_field_name] = value
+  end
+  add_to_class(:topic, "#{file_upload_field_id}=") do |value|
+    custom_fields[file_upload_field_id] = value
   end
 
   # Serialize to topic
@@ -78,11 +86,13 @@ after_initialize do
 
   # Preload the Fields
   add_preloaded_topic_list_custom_field(file_upload_field_name)
+  add_preloaded_topic_list_custom_field(file_upload_field_id)
 
   # Update on topic creation
   DiscourseEvent.on(:topic_created) do |topic, opts, user|
     if opts[file_upload_field_name.to_sym].present?
         topic.custom_fields[file_upload_field_name] = opts[file_upload_field_name.to_sym]
+        topic.custom_fields[file_upload_field_id] = opts[file_upload_field_id.to_sym]
         topic.save_custom_fields(true)
         Rails.logger.info("Saved #{file_upload_field_name} with value: #{opts[file_upload_field_name.to_sym]}")
     else
@@ -95,11 +105,63 @@ after_initialize do
     tc.record_change("#{file_upload_field_name}=".to_sym, tc.topic.custom_fields[file_upload_field_name], value)
     tc.topic.custom_fields[file_upload_field_name] = value
   end
+  PostRevisor.track_topic_field(file_upload_field_id.to_sym) do |tc, value|
+    tc.record_change("#{file_upload_field_id}=".to_sym, tc.topic.custom_fields[file_upload_field_id], value)
+    tc.topic.custom_fields[file_upload_field_id] = value
+  end
 
   # Serialize to the topic list
   add_to_serializer(:topic_list_item, file_upload_field_name.to_sym) do
     object.send(file_upload_field_name)
   end
+
+  if respond_to?(:register_upload_in_use)
+    register_upload_in_use do |upload|
+        TopicCustomField.where(
+            name: 'topic_file_upload',
+            value: [upload.url, upload.sha1]
+        ).exists?
+    end
+  end
+
+  module ::CustomPostProcessor
+    def update_post_image
+      super # Call the original method
+      
+      if @post.is_first_post? # If this is the first post in the topic
+      upload_id = @post.topic.custom_fields['topic_file_upload_id']
+
+      Rails.logger.info("Upload Id is: #{upload_id}")
+      
+        if upload_id
+            @post.update_column(:image_upload_id, upload_id) # Update the post
+            @post.topic.update_column(:image_upload_id, upload_id) # Update the topic
+        end
+      end
+    end
+  end
+
+  # Include the module in the CookedPostProcessor class
+  ::CookedPostProcessor.prepend(CustomPostProcessor)
+
+  module ::AssociateImageToTopic
+   class Engine < ::Rails::Engine
+        engine_name "associate_image_to_topic"
+        isolate_namespace AssociateImageToTopic
+   end
+  end
+
+  require_dependency 'application_controller'
+  require_relative 'app/controllers/associate_image_to_topic/associate_image_topic_controller'
+
+  AssociateImageToTopic::Engine.routes.draw do
+    put '/update' => 'associate_image_topic#update'
+  end
+
+  Discourse::Application.routes.append do
+    mount ::AssociateImageToTopic::Engine, at: '/associate-image-to-topic'
+  end
+
 
   # Customizing User Model
   custom_thumbnail_style_dropdown = 'custom_thumbnail_style_dropdown'
