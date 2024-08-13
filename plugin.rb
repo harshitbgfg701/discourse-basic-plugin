@@ -118,8 +118,8 @@ after_initialize do
   if respond_to?(:register_upload_in_use)
     register_upload_in_use do |upload|
         TopicCustomField.where(
-            name: 'topic_file_upload',
-            value: [upload.url, upload.sha1]
+            name: 'topic_file_upload_id',
+            value: upload.id
         ).exists?
     end
   end
@@ -143,25 +143,6 @@ after_initialize do
 
   # Include the module in the CookedPostProcessor class
   ::CookedPostProcessor.prepend(CustomPostProcessor)
-
-  module ::AssociateImageToTopic
-   class Engine < ::Rails::Engine
-        engine_name "associate_image_to_topic"
-        isolate_namespace AssociateImageToTopic
-   end
-  end
-
-  require_dependency 'application_controller'
-  require_relative 'app/controllers/associate_image_to_topic/associate_image_topic_controller'
-
-  AssociateImageToTopic::Engine.routes.draw do
-    put '/update' => 'associate_image_topic#update'
-  end
-
-  Discourse::Application.routes.append do
-    mount ::AssociateImageToTopic::Engine, at: '/associate-image-to-topic'
-  end
-
 
   # Customizing User Model
   custom_thumbnail_style_dropdown = 'custom_thumbnail_style_dropdown'
