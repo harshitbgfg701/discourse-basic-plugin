@@ -56,6 +56,98 @@ after_initialize do
     object.send(field_name)
   end
 
+  # Add topic video url input field
+  topic_video_field = 'topic_video_input'
+  # Register the field
+  Topic.register_custom_field_type(topic_video_field, :string)
+
+  # Getter method
+  add_to_class(:topic, topic_video_field.to_sym) do
+    custom_fields[topic_video_field]
+  end
+
+  # Setter method
+  add_to_class(:topic, "#{topic_video_field}=") do |value|
+    custom_fields[topic_video_field] = value
+  end
+
+  # Serialize to topic
+  add_to_serializer(:topic_view, topic_video_field.to_sym, respect_plugin_enabled: true) do
+    Rails.logger.info("#{topic_video_field.to_sym}");
+    object.topic.send(topic_video_field.to_sym)
+  end
+
+  # Preload the Fields
+  add_preloaded_topic_list_custom_field(topic_video_field)
+
+  # Update on topic creation
+  DiscourseEvent.on(:topic_created) do |topic, opts, user|
+    if opts[topic_video_field.to_sym].present?
+        topic.custom_fields[topic_video_field] = opts[topic_video_field.to_sym]
+        topic.save_custom_fields(true)
+        Rails.logger.info("Saved #{topic_video_field} with value: #{opts[topic_video_field.to_sym]}")
+    else
+        Rails.logger.warn("#{topic_video_field} is nil or empty: #{opts[topic_video_field.to_sym]}")
+    end
+  end
+
+  # Update on topic edit
+  PostRevisor.track_topic_field(topic_video_field.to_sym) do |tc, value|
+    tc.record_change("#{topic_video_field}=".to_sym, tc.topic.custom_fields[topic_video_field], value)
+    tc.topic.custom_fields[topic_video_field] = value
+  end
+
+  # Serialize to the topic list
+  add_to_serializer(:topic_list_item, topic_video_field.to_sym) do
+    object.send(topic_video_field)
+  end
+
+  # Add topic credit url input field
+  topic_credit_field = 'topic_credit_input'
+  # Register the field
+  Topic.register_custom_field_type(topic_credit_field, :string)
+
+  # Getter method
+  add_to_class(:topic, topic_credit_field.to_sym) do
+    custom_fields[topic_credit_field]
+  end
+
+  # Setter method
+  add_to_class(:topic, "#{topic_credit_field}=") do |value|
+    custom_fields[topic_credit_field] = value
+  end
+
+  # Serialize to topic
+  add_to_serializer(:topic_view, topic_credit_field.to_sym, respect_plugin_enabled: true) do
+    Rails.logger.info("#{topic_credit_field.to_sym}");
+    object.topic.send(topic_credit_field.to_sym)
+  end
+
+  # Preload the Fields
+  add_preloaded_topic_list_custom_field(topic_credit_field)
+
+  # Update on topic creation
+  DiscourseEvent.on(:topic_created) do |topic, opts, user|
+    if opts[topic_credit_field.to_sym].present?
+        topic.custom_fields[topic_credit_field] = opts[topic_credit_field.to_sym]
+        topic.save_custom_fields(true)
+        Rails.logger.info("Saved #{topic_credit_field} with value: #{opts[topic_credit_field.to_sym]}")
+    else
+        Rails.logger.warn("#{topic_credit_field} is nil or empty: #{opts[topic_credit_field.to_sym]}")
+    end
+  end
+
+  # Update on topic edit
+  PostRevisor.track_topic_field(topic_credit_field.to_sym) do |tc, value|
+    tc.record_change("#{topic_credit_field}=".to_sym, tc.topic.custom_fields[topic_credit_field], value)
+    tc.topic.custom_fields[topic_credit_field] = value
+  end
+
+  # Serialize to the topic list
+  add_to_serializer(:topic_list_item, topic_credit_field.to_sym) do
+    object.send(topic_credit_field)
+  end
+
 
   # Add file upload custom field
   file_upload_field_name = 'topic_file_upload'

@@ -24,6 +24,12 @@
     <input type="text" value={{readonly fieldValue}} id="topic-custom-field-input" class="topic-custom-field-input input-large"
          placeholder={{i18n "topic_custom_field.placeholder" field=fieldName}} />
 
+    <input type="text" value={{readonly topic_video_input}} id="topic-video-input"
+        class="topic-video-input input-large" placeholder="Paste video embeded code here..." />
+
+    <input type="text" value={{readonly topic_credit_input}} id="topic-credit-input"
+        class="topic-credit-input input-large" placeholder="https://credit-url" />
+
     <input type="file" onchange={{action send 'onChangeFileUpload' }} id="fileUpload" name="fileUpload" accept="image/*" />
 </div>
 {{/if}}

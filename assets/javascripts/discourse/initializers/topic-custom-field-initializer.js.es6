@@ -62,10 +62,27 @@ export default {
                             model.set('topic_file_upload', model.topic['topic_file_upload']);
                         }
 
+                        if (model.topic && model.topic['topic_video_input']) {
+                            model.set('topic_video_input', model.topic['topic_video_input']);
+                        }
+
+                        if (model.topic && model.topic['topic_credit_input']) {
+                            model.set('topic_credit_input', model.topic['topic_credit_input']);
+                        }
+
                         let props = {
                             fieldName: labelFieldName,
                             fieldValue: model.get(fieldName),
-                            topic_file_upload: model.topic && model.topic['topic_file_upload'] ? model.topic['topic_file_upload'] : null
+                            topic_file_upload: model.topic && model.topic['topic_file_upload'] ? model.topic['topic_file_upload'] : null,
+                            topic_video_input: model.topic && model.topic['topic_video_input'] ? model.topic['topic_video_input'] : null,
+                            topic_credit_input: model.topic && model.topic['topic_credit_input'] ? model.topic['topic_credit_input'] : null
+                        }
+
+                        if (model.action === 'createTopic' && model.topic_file_upload) {
+                            props = {
+                                ...props,
+                                topic_file_upload: model.topic_file_upload,
+                            }
                         }
                         component.setProperties(Object.assign(props, fieldInputTypes(fieldType)));
                     }
@@ -107,6 +124,15 @@ export default {
             api.serializeToDraft('topic_file_upload_id');
             api.serializeToTopic('topic_file_upload_id', `topic.topic_file_upload_id`);
 
+            api.serializeOnCreate('topic_video_input');
+            api.serializeToDraft('topic_video_input');
+            api.serializeToTopic('topic_video_input', `topic.topic_video_input`);
+
+
+            api.serializeOnCreate('topic_credit_input');
+            api.serializeToDraft('topic_credit_input');
+            api.serializeToTopic('topic_credit_input', `topic.topic_credit_input`);
+
             api.modifyClass('service:composer', {
                 pluginId: "discourse-custom-topic-field",
 
@@ -114,10 +140,18 @@ export default {
                     const model = this.get('model');
 
                     if (model.action === 'createTopic' || model.action === 'edit') {
-                        const fieldValue = document.getElementById('topic-custom-field-input').value;
+                        const customFieldValue = document.getElementById('topic-custom-field-input').value;
+                        const topicVideoValue = document.getElementById('topic-video-input').value;
+                        const topicCreditUrlValue = document.getElementById('topic-credit-input').value;
 
-                        if (fieldValue) {
-                            model.set(fieldName, fieldValue);
+                        if (customFieldValue) {
+                            model.set(fieldName, customFieldValue);
+                        }
+                        if (topicVideoValue) {
+                            model.set('topic_video_input', topicVideoValue);
+                        }
+                        if (topicCreditUrlValue) {
+                            model.set('topic_credit_input', topicCreditUrlValue);
                         }
                         this._super(...arguments);
                     } else {
