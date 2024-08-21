@@ -4,58 +4,64 @@ import Composer from "discourse/models/composer";
 
 export default Component.extend({
     url: null,
+    submitError: null,
     modal: service(),
     composer: service(),
     actions: {
         async submit() {
-            const proxyUrl = 'https://corsproxy.io/?';
             const targetUrl = this.get('url');
+            const proxyUrl = 'https://corsproxy.io/?';
 
-            let ogData;
-            try {
-                const response = await fetch(proxyUrl + targetUrl);
-                const html = await response.text();
-                ogData = await parseHtml(html);
-            } catch (error) {
-                console.error('Something went wrong while fetching data!', error);
-            }
+            if (targetUrl && await validateUrl(targetUrl)) {
+                let ogData;
+                try {
+                    const response = await fetch(proxyUrl + targetUrl);
+                    const html = await response.text();
+                    ogData = await parseHtml(html);
+                } catch (error) {
+                    console.error('Something went wrong while fetching data!', error);
+                }
 
-            if (ogData) {
-                let imageData;
-                if (ogData.url) {
-                    const imageName = ogData.image.match(/.*\/(.*)$/)[1]; // .split('.')[0];
-                    try {
-                        imageData = await createFile(proxyUrl + ogData.image, imageName);
-                    } catch (error) {
-                        console.error('Error while downloading file', error);
+                if (ogData) {
+                    let imageData;
+                    if (ogData.url) {
+                        const imageName = ogData.image.match(/.*\/(.*)$/)[1]; // .split('.')[0];
+                        try {
+                            imageData = await createFile(proxyUrl + ogData.image, imageName);
+                        } catch (error) {
+                            console.error('Error while downloading file', error);
+                        }
                     }
-                }
 
-                this.modal.close();
+                    this.modal.close();
 
-                let options = {
-                    title: ogData.title,
-                    topicBody: ogData.description,
-                    read_full_story: ogData.url
-                }
-
-                if (ogData.url && imageData) {
-                    try {
-                        const uploadedImage = await uploadImage(imageData);
-                        options['topic_file_upload'] = uploadedImage.url;
-                        options['topic_file_upload_id'] = uploadedImage.id;
-                    } catch (error) {
-                        console.error('Error while uploading image', error);
+                    let options = {
+                        title: ogData.title ? ogData.title : '',
+                        topicBody: ogData.description ? ogData.description : '',
+                        read_full_story: ogData.url ? ogData.url : '',
                     }
-                }
 
-                this.composer.open({
-                    action: Composer.CREATE_TOPIC,
-                    draftKey: Composer.DRAFT,
-                    ...options
-                });
+                    if (ogData.url && imageData) {
+                        try {
+                            const uploadedImage = await uploadImage(imageData);
+                            options['topic_file_upload'] = uploadedImage.url ? uploadedImage.url : '';
+                            options['topic_file_upload_id'] = uploadedImage.id ? uploadedImage.id : null;
+                        } catch (error) {
+                            console.error('Error while uploading image', error);
+                        }
+                    }
+
+                    this.composer.open({
+                        action: Composer.CREATE_TOPIC,
+                        draftKey: Composer.DRAFT,
+                        ...options
+                    });
+                } else {
+                    this.modal.close();
+                }
             } else {
-                this.modal.close();
+                this.set('submitError', 'Invalid submit url');
+                console.error('Invalid submit url');
             }
         },
 
@@ -63,9 +69,28 @@ export default Component.extend({
             if (value) {
                 this.url = value.trim();
             }
+        },
+
+        async handleOnBlur(url) {
+            if (url && await validateUrl(url)) {
+                this.set('submitError', null);
+            } else {
+                this.set('submitError', 'Invalid submit url');
+            }
         }
     }
 });
+
+async function validateUrl(url) {
+    var expression = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi;
+    var regex = new RegExp(expression);
+
+    if (url && url.match(regex)) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
 async function parseHtml(htmlData) {
     const parser = new DOMParser();
