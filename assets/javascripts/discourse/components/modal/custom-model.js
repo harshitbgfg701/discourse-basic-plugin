@@ -10,37 +10,53 @@ export default Component.extend({
         async submit() {
             const proxyUrl = 'https://corsproxy.io/?';
             const targetUrl = this.get('url');
-            const response = await fetch(proxyUrl + targetUrl);
-            const html = await response.text();
 
-            const ogData = await parseHtml(html);
-
-            let imageData;
-            if (ogData.url) {
-                const imageName = ogData.image.match(/.*\/(.*)$/)[1]; // .split('.')[0];
-                imageData = await createFile(proxyUrl + ogData.image, imageName);
+            let ogData;
+            try {
+                const response = await fetch(proxyUrl + targetUrl);
+                const html = await response.text();
+                ogData = await parseHtml(html);
+            } catch (error) {
+                console.error('Something went wrong while fetching data!', error);
             }
 
-            this.modal.close();
+            if (ogData) {
+                let imageData;
+                if (ogData.url) {
+                    const imageName = ogData.image.match(/.*\/(.*)$/)[1]; // .split('.')[0];
+                    try {
+                        imageData = await createFile(proxyUrl + ogData.image, imageName);
+                    } catch (error) {
+                        console.error('Error while downloading file', error);
+                    }
+                }
 
-            let options = {
-                title: ogData.title,
-                topicBody: ogData.description,
-                read_full_story: ogData.url
+                this.modal.close();
+
+                let options = {
+                    title: ogData.title,
+                    topicBody: ogData.description,
+                    read_full_story: ogData.url
+                }
+
+                if (ogData.url && imageData) {
+                    try {
+                        const uploadedImage = await uploadImage(imageData);
+                        options['topic_file_upload'] = uploadedImage.url;
+                        options['topic_file_upload_id'] = uploadedImage.id;
+                    } catch (error) {
+                        console.error('Error while uploading image', error);
+                    }
+                }
+
+                this.composer.open({
+                    action: Composer.CREATE_TOPIC,
+                    draftKey: Composer.DRAFT,
+                    ...options
+                });
+            } else {
+                this.modal.close();
             }
-
-            if (ogData.url && imageData) {
-                const uploadedImage = await uploadImage(imageData);
-
-                options['topic_file_upload'] = uploadedImage.url;
-                options['topic_file_upload_id'] = uploadedImage.id;
-            }
-
-            this.composer.open({
-                action: Composer.CREATE_TOPIC,
-                draftKey: Composer.DRAFT,
-                ...options
-            });
         },
 
         handleOnChange(value) {
