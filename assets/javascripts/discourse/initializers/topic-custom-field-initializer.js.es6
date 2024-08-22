@@ -48,10 +48,12 @@ export default {
                             topic_credit_input: model.topic && model.topic['topic_credit_input'] ? model.topic['topic_credit_input'] : null
                         }
 
-                        if (model.action === 'createTopic' && model.topic_file_upload) {
+                        if (model.action === 'createTopic' && (model.topic_file_upload || model.topic_video_input || model.topic_credit_input)) {
                             props = {
                                 ...props,
-                                topic_file_upload: model.topic_file_upload,
+                                topic_file_upload: model.topic_file_upload || '',
+                                topic_video_input: model.topic_video_input || '',
+                                topic_credit_input: model.topic_credit_input || ''
                             }
                         }
                         component.setProperties(Object.assign(props, fieldInputTypes(fieldType)));

@@ -1,3 +1,4 @@
+{{#if this.currentUser}}
 <div class="custom-dropdown">
     <select id="dropdown" onchange={{action "saveSelection" value="target.value" }}>
         <option value="">Select...</option>
@@ -5,3 +6,4 @@
         <option value="list" selected={{eq customField "list" }}>List</option>
     </select>
 </div>
+{{/if}}

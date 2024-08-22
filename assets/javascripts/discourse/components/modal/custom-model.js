@@ -31,7 +31,10 @@ export default Component.extend({
 
                 if (ogData) {
                     let imageData;
-                    if(ogData.url) {
+                    if (!ogData.url) {
+                        ogData.url = this.get('url');
+                    }
+                    if(ogData.url && ogData.image) {
                         const imageName = ogData.image.match(/.*\/(.*)$/)[1]; // .split('.')[0];
                         try {
                             imageData = await createFile(proxyUrl + ogData.image, imageName);
@@ -45,7 +48,8 @@ export default Component.extend({
                     let options = {
                         title: ogData.title ? ogData.title : '',
                         topicBody: ogData.description ? ogData.description : '',
-                        read_full_story: ogData.url ? ogData.url : '',
+                        read_full_story: ogData.url,
+                        topic_video_input: ogData['video:url'] ? ogData['video:url'] : ''
                     }
 
                     if (ogData.url && imageData) {
@@ -61,7 +65,6 @@ export default Component.extend({
                     }
 
                     this.modal.close();
-
                     this.composer.open({
                         action: Composer.CREATE_TOPIC,
                         draftKey: Composer.DRAFT,
@@ -107,12 +110,19 @@ async function parseHtml(htmlData) {
     const doc = parser.parseFromString(htmlData, 'text/html');
 
     const ogMetaData = {};
-    const metaArr = ['locale', 'type', 'title', 'description', 'url', 'site_name', 'image', 'image:type', 'image:width', 'image:height'];
+    const metaArr = ['locale', 'type', 'title', 'description', 'url', 'site_name', 'image', 'image:type', 'image:width', 'image:height', 'video:url'];
 
     metaArr.forEach(item => {
-        const ogContentData = doc.querySelector(`meta[property='og:${item}']`) // .getAttribute("content");
-        ogMetaData[item] = ogContentData.content;
-    })
+        let ogContentData = doc.querySelector(`meta[property='og:${item}']`);
+        if (!ogContentData) {
+            ogContentData = doc.querySelector(`meta[name='twitter:${item}']`);
+        }
+        if (ogContentData) {
+            ogMetaData[item] = ogContentData.content || '';
+        } else {
+            ogMetaData[item] = null;
+        }
+    });
 
     return ogMetaData;
 }
