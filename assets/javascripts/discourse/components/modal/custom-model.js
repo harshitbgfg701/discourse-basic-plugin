@@ -2,10 +2,15 @@ import Component from "@ember/component";
 import { inject as service } from '@ember/service';
 import Composer from "discourse/models/composer";
 import { uploadImage } from "../../utlis/uploadImage";
+import { computed } from '@ember/object';
+import { tracked } from '@glimmer/tracking';
 
 export default Component.extend({
-    url: null,
-    submitError: null,
+    url: tracked(),
+    submitError: tracked(),
+    disableBtn: computed('url', 'submitError', function() {
+        return !this.url || this.submitError
+    }),
     modal: service(),
     composer: service(),
     actions: {
@@ -20,7 +25,8 @@ export default Component.extend({
                     const html = await response.text();
                     ogData = await parseHtml(html);
                 } catch (error) {
-                    console.error('Something went wrong while fetching data!', error);
+                    this.set('submitError', 'Something went wrong while fetching data!');
+                    return false;
                 }
 
                 if (ogData) {
@@ -30,11 +36,11 @@ export default Component.extend({
                         try {
                             imageData = await createFile(proxyUrl + ogData.image, imageName);
                         } catch (error) {
-                            console.error('Error while downloading file', error);
+                            console.error('Error while downloading file');
+                            this.set('submitError', 'Something went wrong! Please try again later');
+                            return false;
                         }
                     }
-                    
-                    this.modal.close();
 
                     let options = {
                         title: ogData.title ? ogData.title : '',
@@ -48,9 +54,13 @@ export default Component.extend({
                             options['topic_file_upload'] = uploadedImage.url ? uploadedImage.url : '';
                             options['topic_file_upload_id'] = uploadedImage.id ? uploadedImage.id : null;
                         } catch (error) {
-                            console.error('Error while uploading image', error);
+                            console.error('Error while uploading image');
+                            this.set('submitError', 'Something went wrong! Please try again later');
+                            return false;
                         }
                     }
+
+                    this.modal.close();
 
                     this.composer.open({
                         action: Composer.CREATE_TOPIC,
@@ -62,7 +72,6 @@ export default Component.extend({
                 }
             } else {
                 this.set('submitError', 'Invalid submit url');
-                console.error('Invalid submit url');
             }
         },
 

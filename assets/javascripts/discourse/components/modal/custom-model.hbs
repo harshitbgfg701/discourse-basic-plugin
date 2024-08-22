@@ -4,14 +4,14 @@
         <Input @type="text" 
             class="custom-submit-input" 
             onchange={{action "handleOnChange" value="target.value" }} 
-            onblur={{action "handleOnBlur" value="target.value"}} 
+            onblur={{action "handleOnBlur" value="target.value"}}
             placeholder="http://paste link here to begin submit..." />
         {{#if this.submitError}}
             <span class="text-danger">{{this.submitError}}</span>
         {{/if}}
     </:body>
     <:footer>
-        <DButton class="btn-primary" {{action "submit" }} @translatedLabel="Submit" />
+        <DButton class="btn-primary" @disabled={{this.disableBtn}} {{action "submit" }} @translatedLabel="Submit" />
         <DButton @action={{@closeModal}} @translatedLabel="Cancel" />
     </:footer>
 </DModal>
