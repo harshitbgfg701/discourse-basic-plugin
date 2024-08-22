@@ -1,7 +1,11 @@
 <DModal @title="Submit Topic" @closeModal={{@closeModal}}>
     <:body>
-        <label>Enter URL:</label>
-        <Input @type="text" class="custom-submit-input" onchange={{action "handleOnChange" value="target.value" }} onblur={{action "handleOnBlur" value="target.value"}} />
+        <label>News:</label>
+        <Input @type="text" 
+            class="custom-submit-input" 
+            onchange={{action "handleOnChange" value="target.value" }} 
+            onblur={{action "handleOnBlur" value="target.value"}} 
+            placeholder="http://paste link here to begin submit..." />
         {{#if this.submitError}}
             <span class="text-danger">{{this.submitError}}</span>
         {{/if}}

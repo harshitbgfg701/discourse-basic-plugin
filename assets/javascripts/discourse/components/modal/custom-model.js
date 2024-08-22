@@ -1,6 +1,7 @@
 import Component from "@ember/component";
 import { inject as service } from '@ember/service';
 import Composer from "discourse/models/composer";
+import { uploadImage } from "../../utlis/uploadImage";
 
 export default Component.extend({
     url: null,
@@ -24,7 +25,7 @@ export default Component.extend({
 
                 if (ogData) {
                     let imageData;
-                    if (ogData.url) {
+                    if(ogData.url) {
                         const imageName = ogData.image.match(/.*\/(.*)$/)[1]; // .split('.')[0];
                         try {
                             imageData = await createFile(proxyUrl + ogData.image, imageName);
@@ -32,7 +33,7 @@ export default Component.extend({
                             console.error('Error while downloading file', error);
                         }
                     }
-
+                    
                     this.modal.close();
 
                     let options = {
@@ -108,43 +109,12 @@ async function parseHtml(htmlData) {
 }
 
 async function createFile(url, imageName) {
-    let response = await fetch(url);
+  let response = await fetch(url);
 
-    let data = await response.blob();
-    let metadata = {
-        type: data.type,
-    };
+  let data = await response.blob();
+  let metadata = {
+    type: data.type,
+  };
 
-    return new File([data], imageName, metadata);
-}
-
-async function uploadImage(file) {
-    const formData = new FormData();
-    try {
-        formData.append('upload_type', 'composer');
-        formData.append('file', file);
-
-        const response = await fetch('/uploads.json', {
-            method: 'POST',
-            headers: {
-                'Api-Key': '4b743a435e37463ab4e42bacf2f4ae561f56a4a149d0a9715ecdaf6d1c4718d6',
-                'Api-Username': 'system',
-                'Accept': 'application/json'
-            },
-            body: formData
-        });
-
-        if (!response.ok) {
-            throw new Error(`Upload failed with status ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (data) {
-            return data;
-        } else {
-            throw new Error('Image upload failed');
-        }
-    } catch (error) {
-        throw error;
-    }
+  return new File([data], imageName, metadata);
 }
