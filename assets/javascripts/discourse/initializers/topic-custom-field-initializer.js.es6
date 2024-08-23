@@ -5,8 +5,7 @@ import { uploadImage } from '../utlis/uploadImage';
 export default {
     name: 'topic-custom-field-intializer',
     initialize(container) {
-        const siteSettings = container.lookup('site-settings:main');
-        const composer = container.lookup("service:composer");
+        const siteSettings = container.lookup('site-settings:main');        
         let fieldName = siteSettings.topic_custom_field_name;
         const labelFieldName = fieldName;
         const fieldType = siteSettings.topic_custom_field_type;
@@ -19,10 +18,12 @@ export default {
 
         withPluginApi('0.8.26', api => {
             api.registerConnectorClass('composer-fields', 'composer-topic-custom-field-container', {
+                
                 async setupComponent(attrs, component) {
                     const model = attrs.model;
 
                     if (model.action==="createTopic" && model.draftKey==="draft" && model.title) {
+                        const composer = container.lookup("service:composer");
                         await composer.store.find("similar-topic", { title: model.title });
                         this.appEvents.trigger("composer:find-similar");
                     }
