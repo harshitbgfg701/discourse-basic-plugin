@@ -6,6 +6,7 @@ export default {
     name: 'topic-custom-field-intializer',
     initialize(container) {
         const siteSettings = container.lookup('site-settings:main');
+        const composer = container.lookup("service:composer");
         let fieldName = siteSettings.topic_custom_field_name;
         const labelFieldName = fieldName;
         const fieldType = siteSettings.topic_custom_field_type;
@@ -18,8 +19,13 @@ export default {
 
         withPluginApi('0.8.26', api => {
             api.registerConnectorClass('composer-fields', 'composer-topic-custom-field-container', {
-                setupComponent(attrs, component) {
+                async setupComponent(attrs, component) {
                     const model = attrs.model;
+
+                    if (model.action==="createTopic" && model.draftKey==="draft" && model.title) {
+                        await composer.store.find("similar-topic", { title: model.title });
+                        this.appEvents.trigger("composer:find-similar");
+                    }
 
                     if (model.action === 'createTopic' || (model.action === 'edit' && model.editingFirstPost)) {
                         // If the first post is being edited we need to pass our value from

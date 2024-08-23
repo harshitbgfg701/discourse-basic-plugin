@@ -8,7 +8,7 @@ import { tracked } from '@glimmer/tracking';
 export default Component.extend({
     url: tracked(),
     submitError: tracked(),
-    disableBtn: computed('url', 'submitError', function () {
+    disableBtn: computed('url', 'submitError', function() {
         return !this.url || this.submitError
     }),
     modal: service(),
@@ -34,7 +34,7 @@ export default Component.extend({
                     if (!ogData.url) {
                         ogData.url = this.get('url');
                     }
-                    if (ogData.url && ogData.image) {
+                    if(ogData.url && ogData.image) {
                         let imageName = ogData.image.match(/.*\/(.*)$/)[1];
                         if (imageName.includes('?')) {
                             imageName = imageName.split('?')[0];
@@ -131,12 +131,12 @@ async function parseHtml(htmlData) {
 }
 
 async function createFile(url, imageName) {
-    let response = await fetch(url);
+  let response = await fetch(url);
 
-    let data = await response.blob();
-    let metadata = {
-        type: data.type,
-    };
+  let data = await response.blob();
+  let metadata = {
+    type: data.type,
+  };
 
-    return new File([data], imageName, metadata);
+  return new File([data], imageName, metadata);
 }
