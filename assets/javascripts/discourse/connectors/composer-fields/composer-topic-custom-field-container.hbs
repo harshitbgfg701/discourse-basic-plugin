@@ -38,6 +38,11 @@
 <img src="{{topic_file_upload}}" alt="Uploaded Image" class="uploaded-image" />
 {{/if}}
 
+<input type="hidden" id="selected-tags-input" />
+<div class="tag-tabs">
+    {{custom-tabs initialTags=model.tags}}
+</div>
+
 {{#if isJson}}
   {{textarea
     value=(readonly fieldValue)

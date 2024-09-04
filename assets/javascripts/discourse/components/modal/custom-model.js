@@ -130,7 +130,7 @@ async function parseHtml(htmlData) {
     return ogMetaData;
 }
 
-async function createFile(url, imageName) {
+async function createFile(url, imageName, imageType) {
   let response = await fetch(url);
 
   let data = await response.blob();

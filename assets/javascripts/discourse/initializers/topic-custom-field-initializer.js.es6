@@ -5,7 +5,7 @@ import { uploadImage } from '../utlis/uploadImage';
 export default {
     name: 'topic-custom-field-intializer',
     initialize(container) {
-        const siteSettings = container.lookup('site-settings:main');        
+        const siteSettings = container.lookup('site-settings:main');
         let fieldName = siteSettings.topic_custom_field_name;
         const labelFieldName = fieldName;
         const fieldType = siteSettings.topic_custom_field_type;
@@ -132,6 +132,15 @@ export default {
                         if (topicCreditUrlValue) {
                             model.set('topic_credit_input', topicCreditUrlValue);
                         }
+
+                        const selectedTagsValue = document.getElementById('selected-tags-input').value;
+                        const selectedTags = selectedTagsValue ? selectedTagsValue.split(',') : [];
+                        if (selectedTags.length > 0) {
+                            let tags = model.get('tags');
+                            tags = [...tags, ...selectedTags];
+                            model.set('tags', tags);
+                        }
+
                         this._super(...arguments);
                     } else {
                         this._super(...arguments);

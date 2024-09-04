@@ -1,0 +1,50 @@
+<!-- Display selected tag -->
+<div class="selected-tags">
+    {{#if this.selectedTags}}
+        {{#each this.selectedTags as |selectedTag|}}
+            <button onclick={{action "toggleSelectedTag" selectedTag }} class="btn btn-default selected-choice">
+                {{d-icon "times"}}
+                {{selectedTag}}
+            </button>
+        {{/each}}
+    {{/if}}
+</div>
+
+<!-- Tabs -->
+<div class="tab">
+    {{#each this.tabs as |tab|}}
+        <button id={{tab.id}} class="tablinks" onclick={{action "onTabsChange" tab.name }}>
+
+            {{#if (eq tab.name 'tab-2')}}
+                <input class="search-tag" type="text" placeholder="Search or Create tag..." onkeyup={{action "handleInputChange" value="target.value"}} value="" />
+            {{else}}
+                {{tab.label}}
+            {{/if}}
+        </button>
+    {{/each}}
+</div>
+
+<!-- Tabs Data -->
+<div id="tag-suggestions" class="tabcontent">
+    {{#each this.defaultTags as |tag|}}
+        <button onclick={{action 'handleTagClick' tag}} class="btn btn-default selected-choice {{tag.fade}}">
+            {{tag.name}}
+        </button>
+    {{/each}}
+</div>
+
+<div id="tab-2" class="tabcontent">
+    {{#if (eq this.searchedTags.length 0)}}
+        {{#if this.createTagValue}}
+        <button {{action 'handleTagClick' this.createTagValue}} class="btn btn-default selected-choice">
+            Create: {{this.createTagValue}}
+        </button>
+        {{/if}}
+    {{else}}
+        {{#each this.searchedTags as |tag|}}
+        <button onclick={{action 'handleTagClick' tag}} class="btn btn-default selected-choice">
+            {{tag.text}}
+        </button>
+        {{/each}}
+    {{/if}}
+</div>
