@@ -8,82 +8,83 @@ import { tracked } from '@glimmer/tracking';
 export default Component.extend({
     url: tracked(),
     submitError: tracked(),
-    disableBtn: computed('url', 'submitError', function() {
-        return !this.url || this.submitError
+    isLoading: tracked(),
+    disableBtn: computed('url', 'submitError', 'isLoading', function() {
+        return !this.url || this.url && this.submitError || this.isLoading
     }),
     modal: service(),
     composer: service(),
     actions: {
         async submit() {
-            const targetUrl = this.get('url');
-            const proxyUrl = 'https://corsproxy.io/?';
+            try {
+                const targetUrl = this.get('url').trim();
+                this.isLoading = true;
 
-            if (targetUrl && await validateUrl(targetUrl)) {
-                let ogData;
-                try {
-                    const response = await fetch(proxyUrl + targetUrl);
-                    const html = await response.text();
-                    ogData = await parseHtml(html);
-                } catch (error) {
-                    this.set('submitError', 'Something went wrong while fetching data!');
-                    return false;
-                }
-
-                if (ogData) {
-                    let imageData;
-                    if (!ogData.url) {
-                        ogData.url = this.get('url');
-                    }
-                    if(ogData.url && ogData.image) {
-                        let imageName = ogData.image.match(/.*\/(.*)$/)[1];
-                        if (imageName.includes('?')) {
-                            imageName = imageName.split('?')[0];
+                if (targetUrl && await validateUrl(targetUrl)) {
+                        let ogData;
+                        const response = await fetch(`https://corsproxy.io/?https://scrape.n4g.com/fetchMetadata?url=${targetUrl}`); // Todo: Remove Proxy
+                        
+                        if (!response.ok) {
+                            throw new Error('Error while fetching data');
                         }
-                        try {
-                            imageData = await createFile(proxyUrl + ogData.image, imageName);
-                        } catch (error) {
-                            console.error('Error while downloading file');
-                            this.set('submitError', 'Something went wrong! Please try again later');
-                            return false;
+                        ogData = (await response.json())?.data;
+
+                        if (ogData) {
+                            let imageData;
+                            if(ogData.image && ogData.decodedImage) {
+                                let imageName = ogData.image.match(/.*\/(.*)$/)[1];
+                                if (imageName.includes('?')) {
+                                    imageName = imageName.split('?')[0];
+                                }
+                                try {
+                                    imageData = await createFile(ogData.decodedImage, imageName);
+                                } catch (error) {
+                                    throw new Error('Something went wrong! Please try again later');
+                                }
+                            }
+
+                            let options = {
+                                title: ogData.title ? ogData.title : '',
+                                topicBody: ogData.description ? ogData.description : '',
+                                read_full_story: ogData.url,
+                                topic_video_input: ogData['video:url'] ? ogData['video:url'] : ''
+                            }
+
+                            if (ogData.image && ogData.decodedImage && imageData) {
+                                try {
+                                    const uploadedImage = await uploadImage(imageData);
+                                    options['topic_file_upload'] = uploadedImage.url ? uploadedImage.url : '';
+                                    options['topic_file_upload_id'] = uploadedImage.id ? uploadedImage.id : null;
+                                } catch (error) {
+                                    throw new Error('Something went wrong! Please try again later');
+                                }
+                            }
+
+                            this.modal.close();
+                            this.composer.open({
+                                action: Composer.CREATE_TOPIC,
+                                draftKey: Composer.DRAFT,
+                                ...options
+                            });
+                        } else {
+                            this.modal.close();
                         }
-                    }
-
-                    let options = {
-                        title: ogData.title ? ogData.title : '',
-                        topicBody: ogData.description ? ogData.description : '',
-                        read_full_story: ogData.url,
-                        topic_video_input: ogData['video:url'] ? ogData['video:url'] : ''
-                    }
-
-                    if (ogData.url && imageData) {
-                        try {
-                            const uploadedImage = await uploadImage(imageData);
-                            options['topic_file_upload'] = uploadedImage.url ? uploadedImage.url : '';
-                            options['topic_file_upload_id'] = uploadedImage.id ? uploadedImage.id : null;
-                        } catch (error) {
-                            console.error('Error while uploading image');
-                            this.set('submitError', 'Something went wrong! Please try again later');
-                            return false;
-                        }
-                    }
-
-                    this.modal.close();
-                    this.composer.open({
-                        action: Composer.CREATE_TOPIC,
-                        draftKey: Composer.DRAFT,
-                        ...options
-                    });
                 } else {
-                    this.modal.close();
+                    throw new Error('Invalid submit url');
                 }
-            } else {
-                this.set('submitError', 'Invalid submit url');
+            } catch (error) {
+                this.set('submitError', error.message);
+            } finally {
+                this.isLoading = false;
             }
         },
 
         handleOnChange(value) {
             if (value) {
                 this.url = value.trim();
+            } else {
+                this.url = value;
+                this.set('submitError', 'Invalid submit url');
             }
         },
 
@@ -94,7 +95,7 @@ export default Component.extend({
                 this.set('submitError', 'Invalid submit url');
             }
         }
-    }
+    },
 });
 
 async function validateUrl(url) {
@@ -108,35 +109,14 @@ async function validateUrl(url) {
     }
 }
 
-async function parseHtml(htmlData) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlData, 'text/html');
-
-    const ogMetaData = {};
-    const metaArr = ['locale', 'type', 'title', 'description', 'url', 'site_name', 'image', 'image:type', 'image:width', 'image:height', 'video:url'];
-
-    metaArr.forEach(item => {
-        let ogContentData = doc.querySelector(`meta[property='og:${item}']`);
-        if (!ogContentData) {
-            ogContentData = doc.querySelector(`meta[name='twitter:${item}']`);
-        }
-        if (ogContentData) {
-            ogMetaData[item] = ogContentData.content || '';
-        } else {
-            ogMetaData[item] = null;
-        }
-    });
-
-    return ogMetaData;
-}
-
-async function createFile(url, imageName, imageType) {
-  let response = await fetch(url);
-
-  let data = await response.blob();
-  let metadata = {
-    type: data.type,
-  };
-
-  return new File([data], imageName, metadata);
+async function createFile(fileURI, imageName) {
+    let arr = fileURI.split(','),
+        mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[arr.length - 1]), 
+        n = bstr.length, 
+        u8arr = new Uint8Array(n);
+    while(n--){
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], imageName, {type:mime});
 }
